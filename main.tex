@@ -1,0 +1,94 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{setspace}
+\setstretch{1.1} % dentro del rango 1.05--1.15
+\setlength{\parindent}{0pt} % sin sangría de párrafo
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{csquotes}
+\usepackage{enumitem}
+\usepackage{url}
+
+% Bibliografía estilo numérico con biblatex
+\usepackage[backend=biber,style=numeric,sorting=none,maxbibnames=6]{biblatex}
+\addbibresource{referencias.bib}
+
+\title{\textbf{Predicción de ocupación de aulas con sensores ambientales (sin visión)}}
+\author{%
+Dylam Joseph Jaime Guiza\\
+Elmar Wilson Leguizamón Ballen\\
+Yoiber Andrés Beitar Rentería\\
+David Franchesco Rodríguez Celemín\\[4pt]
+\texttt{dylamjosephj@utadeo.edu.co; elmarleguizamonb@utadeo.edu.co;}\\
+\texttt{yoiberbeitarr@utadeo.edu.co; davidf.rodriguezc@utadeo.edu.co}\\
+Universidad Jorge Tadeo Lozano --- Programa de Ingeniería de Sistemas\\
+Curso: Inteligencia Artificial --- Bogotá D.C., Colombia}
+\date{05 de octubre de 2025}
+
+\begin{document}
+\maketitle
+
+\section*{Resumen}
+Proponemos un proyecto de aprendizaje automático para \textbf{predecir la ocupación de aulas} exclusivamente a partir de \textbf{sensores ambientales} (temperatura, humedad, luz y CO2), sin utilizar imágenes ni audio. El enfoque reduce complejidad, costos y riesgos de privacidad, y es replicable en diferentes salones del campus. Utilizaremos el \textit{Occupancy Detection Data Set} del repositorio UCI (con espejo en Kaggle), que contiene mediciones minuto a minuto en formato CSV y etiqueta binaria de ocupación. Entrenaremos y compararemos tres modelos: \textit{Regresión Logística} (línea base interpretable), \textit{Random Forest} (no lineal y robusto) y \textit{SVM lineal}. Se evaluará con F1, ROC--AUC, Precisión, Recall y matriz de confusión bajo una \textbf{partición temporal} (train/val/test 70/15/15) para evitar fuga de información. Nuestra hipótesis es alcanzar \textbf{F1 $>$ 0.90} y \textbf{AUC $>$ 0.95} con Random Forest, entregando además código reproducible y repositorio Git con licencia abierta.
+
+\section*{Problema local y motivación}
+En la Universidad Jorge Tadeo Lozano, la planificación de aulas depende de horarios teóricos y observaciones manuales, lo que impacta la \textit{eficiencia} en el uso de espacios y el \textit{consumo energético} (iluminación y ventilación). Una detección automatizada de ocupación permite liberar o reasignar ambientes en tiempo casi real, reducir costos e incorporar criterios de sostenibilidad. A diferencia de soluciones basadas en cámaras, el uso de sensores \emph{no captura datos personales}, simplifica la operación y facilita su adopción por áreas administrativas y de TI del campus.
+
+\section*{Dataset}
+\begin{itemize}[leftmargin=1.2em,itemsep=0.15em]
+    \item \textbf{Nombre y fuente:} \textit{Occupancy Detection Data Set} (UCI, 2016) con espejo en Kaggle \cite{uci,kagglecc0,candanedo2016}.
+    \item \textbf{Tamaño y variables:} $\sim$20{,}560 instancias; variables: \texttt{Temperature}, \texttt{Humidity}, \texttt{Light}, \texttt{CO2}, \texttt{HumidityRatio}, y atributos derivados de fecha-hora.
+    \item \textbf{Formato y licencia:} CSV con licencia abierta (CC0 en Kaggle) para uso educativo e investigación.
+    \item \textbf{Validez:} Conjunto ampliamente usado en la literatura, con señales físicas robustas y representativas de oficinas/aulas en entornos reales.
+\end{itemize}
+
+\section*{Tarea de IA y algoritmo(s)}
+\textbf{Tipo de datos:} tabulares (sensores). \textbf{Tarea:} clasificación binaria \emph{ocupado} vs. \emph{vacío}.\\
+\textbf{Modelos propuestos:}
+\begin{itemize}[leftmargin=1.2em,itemsep=0.2em]
+    \item \textbf{Regresión Logística} (baseline): interpretable, rápida y con buen desempeño cuando la frontera es aproximadamente lineal \cite{pedregosa2011,kohavi1995}.
+    \item \textbf{Random Forest} (principal): maneja no linealidades e interacciones sin ingeniería de características compleja; robusto a ruido y escalado \cite{breiman2001}.
+    \item \textbf{SVM lineal} (comparativo): buen rendimiento en espacios de alta dimensión y con regularización explícita \cite{cortesvapnik1995}.
+\end{itemize}
+
+\section*{Metodología y evaluación}
+\textbf{Preprocesamiento.} Limpieza de nulos; \textit{parsing} de fecha-hora; ingeniería ligera (hora del día, indicador fin de semana); estandarización para modelos lineales.\\[3pt]
+\textbf{Partición temporal.} Se aplica \textbf{train/val/test 70/15/15} manteniendo el orden cronológico para evitar \textit{data leakage}. La validación guía la selección de hiperparámetros y umbrales.\\[3pt]
+\textbf{Entrenamiento.} Búsqueda acotada de hiperparámetros con validación cruzada temporal; balanceo de clases mediante \texttt{class\_weight} o sobremuestreo si procede \cite{hegarcia2009}. Se registran semillas y versiones para reproducibilidad.\\[3pt]
+\textbf{Métricas.} Reporte de Precisión, Recall, \textbf{F1}, \textbf{ROC--AUC} y matriz de confusión; curvas ROC y Precisión--Recall para el mejor modelo \cite{saito2015}.\\[3pt]
+\textbf{Líneas base y comparación.} Compararemos Logistic vs. RF vs. SVM; una regla mayoritaria sirve como piso de desempeño mínimo.\\[3pt]
+\textbf{Stack técnico.} Python 3.10, \texttt{pandas/numpy}, \texttt{scikit-learn} y \texttt{matplotlib} \cite{pedregosa2011}.
+
+\section*{Resultados esperados e hipótesis}
+\begin{itemize}[leftmargin=1.2em,itemsep=0.2em]
+    \item \textbf{Hipótesis 1:} \emph{Random Forest} alcanzará \textbf{F1 $>$ 0.90} y \textbf{AUC $>$ 0.95} en el conjunto de prueba independiente.
+    \item \textbf{Hipótesis 2:} Las variables \texttt{Light} y \texttt{CO2} figurarán entre las más relevantes en la importancia de características de RF.
+    \item \textbf{Hipótesis 3:} La inclusión de \textit{features} temporales (hora, fin de semana) mejorará F1 respecto a usar sólo señales físicas.
+\end{itemize}
+
+\section*{Consideraciones éticas y riesgos}
+El proyecto \textbf{no usa imágenes ni audio}, por lo que minimiza exposición a datos personales. Riesgos: sesgo por ubicación de sensores, deriva temporal en horarios y cambios de ventilación. Mitigaciones: calibración básica, evaluación por periodos y registro de supuestos. Se documentarán límites de generalización y buenas prácticas de despliegue responsable \cite{nist2021}.
+
+\section*{Alcance y cronograma}
+\begin{itemize}[leftmargin=1.2em,itemsep=0.2em]
+    \item \textbf{Semana 1:} EDA, preprocesamiento, definición de \textit{features}.
+    \item \textbf{Semana 2:} Entrenamiento y validación; selección de modelo.
+    \item \textbf{Semana 3:} Evaluación final y análisis de errores; curvas ROC/PR; explicabilidad (importancias).
+    \item \textbf{Semana 4:} Documento \LaTeX{}, README y publicación del repositorio con \texttt{LICENSE}.
+\end{itemize}
+
+\section*{Roles del equipo}
+\begin{itemize}[leftmargin=1.2em,itemsep=0.2em]
+    \item \textbf{Dylam Joseph Jaime Guiza:} liderazgo técnico, modelado y validación.
+    \item \textbf{Elmar Wilson Leguizamón Ballen:} preprocesamiento, métricas y documentación de resultados.
+    \item \textbf{Yoiber Andrés Beitar Rentería:} \LaTeX{}, README y estructura del repositorio Git.
+\end{itemize}
+
+\noindent\textbf{Repositorio del proyecto:} \url{https://github.com/organizacion/proyecto-ocupacion-sensores} \ (placeholder, sustituir por el repositorio real).
+
+\printbibliography
+\end{document}
